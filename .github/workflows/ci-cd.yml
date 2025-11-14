@@ -8,8 +8,8 @@ on:
 
 env:
   DOTNET_VERSION: '9.0.x'
-  PROJECT_PATH: 'UMS.api/UMS.API.csproj'
-  SOLUTION_PATH: 'UMS solution.sln'
+  PROJECT_PATH: './UMS.api/UMS.API.csproj'
+  SOLUTION_PATH: './UMS solution.sln'
 
 jobs:
   build-and-test:
