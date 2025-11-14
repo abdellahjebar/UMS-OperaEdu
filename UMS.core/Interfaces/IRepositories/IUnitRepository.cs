@@ -8,6 +8,7 @@ namespace UMS.Core.Interfaces.Repositories
         IStudentRepository Students { get; }
         ICourseRepository Courses { get; }
         IEnrollmentRepository Enrollments { get; }
+        IProgramRepository Programs { get; }
 
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();

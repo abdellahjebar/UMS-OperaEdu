@@ -14,17 +14,20 @@ namespace UMS.Infrastructure.Persistence.Repositories
         public IStudentRepository Students { get; }
         public ICourseRepository Courses { get; }
         public IEnrollmentRepository Enrollments { get; }
+        public IProgramRepository Programs { get; }
 
         public UnitOfWork(
             ApplicationDbContext context,
             IStudentRepository studentRepository,
             ICourseRepository courseRepository,
-            IEnrollmentRepository enrollmentRepository)
+            IEnrollmentRepository enrollmentRepository,
+            IProgramRepository programRepository)
         {
             _context = context;
             Students = studentRepository;
             Courses = courseRepository;
             Enrollments = enrollmentRepository;
+            Programs = programRepository;
         }
 
         public async Task<int> SaveChangesAsync()

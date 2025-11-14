@@ -71,6 +71,7 @@ namespace UMS.Infrastructure
             services.AddScoped<IStudentRepository, StudentRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+            services.AddScoped<IProgramRepository, ProgramRepository>();
             services.AddScoped<ITenantRepository, TenantRepository>();
 
             // Unit of Work
