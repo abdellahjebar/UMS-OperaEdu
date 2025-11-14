@@ -24,15 +24,6 @@ RUN dotnet publish "UMS.API.csproj" -c Release -o /app/publish /p:UseAppHost=fal
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
-# Install SQL Server tools (for migrations if needed)
-RUN apt-get update && apt-get install -y curl apt-transport-https && \
-    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
-    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list > /etc/apt/sources.list.d/mssql-release.list && \
-    apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y msodbcsql18 mssql-tools18 && \
-    echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # Copy published files
 COPY --from=build /app/publish .
 
