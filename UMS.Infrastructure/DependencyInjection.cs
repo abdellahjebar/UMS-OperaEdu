@@ -44,27 +44,25 @@ namespace UMS.Infrastructure
             {
                 var tenantService = sp.GetRequiredService<ITenantService>();
                 var connectionString = tenantService.GetTenantConnectionString();
+                var tenantOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
                 if (string.IsNullOrEmpty(connectionString))
                 {
                     // If no tenant context (e.g., super admin accessing tenant management)
                     // Return a context that won't be used
-                    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-                    return new ApplicationDbContext(optionsBuilder.Options);
+                    return new ApplicationDbContext(tenantOptionsBuilder.Options);
                 }
-
-                var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
                 
                 if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
                 {
-                    optionsBuilder.UseNpgsql(connectionString);
+                    tenantOptionsBuilder.UseNpgsql(connectionString);
                 }
                 else
                 {
-                    optionsBuilder.UseSqlServer(connectionString);
+                    tenantOptionsBuilder.UseSqlServer(connectionString);
                 }
 
-                return new ApplicationDbContext(optionsBuilder.Options);
+                return new ApplicationDbContext(tenantOptionsBuilder.Options);
             });
 
             // Repositories
