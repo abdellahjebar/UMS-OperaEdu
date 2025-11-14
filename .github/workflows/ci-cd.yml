@@ -1,0 +1,88 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  PROJECT_PATH: 'UMS.api/UMS.API.csproj'
+  SOLUTION_PATH: 'UMS solution.sln'
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore "${{ env.SOLUTION_PATH }}"
+      
+    - name: Build solution
+      run: dotnet build "${{ env.SOLUTION_PATH }}" --configuration Release --no-restore
+      
+    - name: Run tests
+      run: dotnet test "${{ env.SOLUTION_PATH }}" --configuration Release --no-build --verbosity normal
+      
+    - name: Publish API
+      run: dotnet publish "${{ env.PROJECT_PATH }}" --configuration Release --no-build --output ./publish
+      
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ums-api
+        path: ./publish
+        retention-days: 30
+
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: ums-operaedu:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore "${{ env.SOLUTION_PATH }}"
+      
+    - name: Check code formatting
+      run: dotnet format "${{ env.SOLUTION_PATH }}" --verify-no-changes --verbosity diagnostic
+      continue-on-error: true
