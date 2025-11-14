@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\UMS.core\UMS.core.csproj" />
+    <ProjectReference Include="..\UMS.core\UMS.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
