@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UMS.Core.Entities.Tenants;
 using UMS.Core.Interfaces;
@@ -9,10 +10,14 @@ namespace UMS.Infrastructure.Services
     public class DatabaseInitializationService : IDatabaseInitializationService
     {
         private readonly ILogger<DatabaseInitializationService> _logger;
+        private readonly IConfiguration _configuration;
 
-        public DatabaseInitializationService(ILogger<DatabaseInitializationService> logger)
+        public DatabaseInitializationService(
+            ILogger<DatabaseInitializationService> logger,
+            IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
         }
 
         public async Task EnsureDatabaseCreatedAsync(Tenant tenant)
@@ -23,8 +28,17 @@ namespace UMS.Infrastructure.Services
                     tenant.Name, tenant.Subdomain);
 
                 // Create DbContext with tenant's connection string
+                var dbProvider = _configuration["DatabaseProvider"] ?? "SqlServer";
                 var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-                optionsBuilder.UseSqlServer(tenant.ConnectionString);
+                
+                if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
+                {
+                    optionsBuilder.UseNpgsql(tenant.ConnectionString);
+                }
+                else
+                {
+                    optionsBuilder.UseSqlServer(tenant.ConnectionString);
+                }
 
                 using var context = new ApplicationDbContext(optionsBuilder.Options);
 

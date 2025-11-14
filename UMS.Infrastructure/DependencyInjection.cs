@@ -18,10 +18,22 @@ namespace UMS.Infrastructure
             IConfiguration configuration)
         {
             // Master Database Context (for tenant management)
+            var masterConnection = configuration.GetConnectionString("MasterConnection");
+            var dbProvider = configuration["DatabaseProvider"] ?? "SqlServer"; // Default to SQL Server
+            
             services.AddDbContext<MasterDbContext>(options =>
-                options.UseSqlServer(
-                    configuration.GetConnectionString("MasterConnection"),
-                    b => b.MigrationsAssembly(typeof(MasterDbContext).Assembly.FullName)));
+            {
+                if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
+                {
+                    options.UseNpgsql(masterConnection,
+                        b => b.MigrationsAssembly(typeof(MasterDbContext).Assembly.FullName));
+                }
+                else
+                {
+                    options.UseSqlServer(masterConnection,
+                        b => b.MigrationsAssembly(typeof(MasterDbContext).Assembly.FullName));
+                }
+            });
 
             // Tenant Service
             services.AddScoped<TenantService>();
@@ -41,11 +53,18 @@ namespace UMS.Infrastructure
                     return new ApplicationDbContext(optionsBuilder.Options);
                 }
 
-                var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                    .UseSqlServer(connectionString)
-                    .Options;
+                var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+                
+                if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
+                {
+                    optionsBuilder.UseNpgsql(connectionString);
+                }
+                else
+                {
+                    optionsBuilder.UseSqlServer(connectionString);
+                }
 
-                return new ApplicationDbContext(options);
+                return new ApplicationDbContext(optionsBuilder.Options);
             });
 
             // Repositories
