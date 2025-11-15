@@ -21,7 +21,7 @@ namespace UMS.Application.Features.Courses.Queries.GetCourseById
 
             if (course == null)
             {
-                throw new BadRequestException($"Course with ID {request.Id} not found");
+                throw new NotFoundException($"Course with ID {request.Id} not found");
             }
 
             return new CourseDto

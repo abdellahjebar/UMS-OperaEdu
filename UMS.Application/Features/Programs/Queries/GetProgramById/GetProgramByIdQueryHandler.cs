@@ -21,7 +21,7 @@ namespace UMS.Application.Features.Programs.Queries.GetProgramById
 
             if (program == null)
             {
-                throw new BadRequestException($"Program with ID {request.Id} not found");
+                throw new NotFoundException($"Program with ID {request.Id} not found");
             }
 
             return new ProgramDto

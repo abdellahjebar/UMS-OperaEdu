@@ -36,6 +36,7 @@ namespace UMS.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "StudentOnly")]
         public async Task<IActionResult> Create([FromBody] CreateEnrollmentCommand command)
         {
             var id = await _mediator.Send(command);
@@ -43,6 +44,7 @@ namespace UMS.API.Controllers
         }
 
         [HttpPut("{id}/grade")]
+        [Authorize(Policy = "FacultyOrAdmin")]
         public async Task<IActionResult> UpdateGrade(Guid id, [FromBody] UpdateEnrollmentGradeCommand command)
         {
             command.Id = id;
@@ -51,6 +53,7 @@ namespace UMS.API.Controllers
         }
 
         [HttpPost("{id}/withdraw")]
+        [Authorize(Policy = "StudentOrFacultyOrAdmin")]
         public async Task<IActionResult> Withdraw(Guid id)
         {
             await _mediator.Send(new WithdrawEnrollmentCommand { Id = id });

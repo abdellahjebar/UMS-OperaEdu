@@ -20,7 +20,7 @@ namespace UMS.Application.Features.Programs.Commands.UpdateProgram
             
             if (program == null)
             {
-                throw new BadRequestException($"Program with ID {request.Id} not found");
+                throw new NotFoundException($"Program with ID {request.Id} not found");
             }
 
             program.Name = request.Name;

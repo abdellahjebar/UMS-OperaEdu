@@ -32,21 +32,19 @@ Content-Type: application/json
 }
 ```
 
-### Error Response (400 Bad Request)
+### Error Response (400 Bad Request - Validation)
 ```json
 {
   "statusCode": 400,
-  "message": "Validation failed",
-  "errors": [
-    {
-      "property": "Email",
-      "message": "Email is required."
-    },
-    {
-      "property": "Password",
-      "message": "Password must be at least 6 characters."
-    }
-  ]
+  "title": "Validation failed",
+  "detail": "One or more validation errors occurred.",
+  "traceId": "00-1234567890abcdef-1234567890abcdef-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": {
+    "Email": ["Email is required.", "Email must be a valid email address."],
+    "Password": ["Password must be at least 8 characters."],
+    "ProgramId": ["ProgramId is required."]
+  }
 }
 ```
 
@@ -109,7 +107,125 @@ GET /api/students/550e8400-e29b-41d4-a716-446655440000
 ### Error Response (404 Not Found)
 ```json
 {
-  "message": "Student with ID '550e8400-e29b-41d4-a716-446655440000' not found."
+  "statusCode": 404,
+  "title": "Resource not found",
+  "detail": "Student with ID 550e8400-e29b-41d4-a716-446655440000 not found",
+  "traceId": "00-1234567890abcdef-1234567890abcdef-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
+}
+```
+
+## 4. Create a Course
+
+### Request
+```http
+POST /api/courses
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "code": "CS101",
+  "name": "Introduction to Computer Science",
+  "description": "Fundamental concepts of computer science",
+  "credits": 3,
+  "departmentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+}
+```
+
+### Success Response (201 Created)
+```json
+{
+  "id": "7d8e9f00-1234-5678-9abc-def012345678"
+}
+```
+
+### Error Response (401 Unauthorized)
+```json
+{
+  "statusCode": 401,
+  "title": "Unauthorized",
+  "detail": "Unauthorized access",
+  "traceId": "00-1234567890abcdef-1234567890abcdef-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
+}
+```
+
+### Error Response (403 Forbidden)
+```json
+{
+  "statusCode": 403,
+  "title": "Forbidden",
+  "detail": "User does not have the required role: FacultyOrAdmin",
+  "traceId": "00-1234567890abcdef-1234567890abcdef-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
+}
+```
+
+## 5. Create Enrollment
+
+### Request
+```http
+POST /api/enrollments
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "studentId": "550e8400-e29b-41d4-a716-446655440000",
+  "sectionId": "7d8e9f00-1234-5678-9abc-def012345678",
+  "enrollmentDate": "2025-01-15"
+}
+```
+
+### Success Response (201 Created)
+```json
+{
+  "id": "9a8b7c6d-5e4f-3a2b-1c0d-fedcba098765"
+}
+```
+
+### Error Response (400 Bad Request - Business Rule)
+```json
+{
+  "statusCode": 400,
+  "title": "Bad request",
+  "detail": "Student has already enrolled in this section",
+  "traceId": "00-1234567890abcdef-1234567890abcdef-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
+}
+```
+
+## 6. Update Enrollment Grade
+
+### Request
+```http
+PUT /api/enrollments/9a8b7c6d-5e4f-3a2b-1c0d-fedcba098765/grade
+Authorization: Bearer <jwt-token>
+Content-Type: application/json
+
+{
+  "numericGrade": 85.5,
+  "gradePoints": 3.5
+}
+```
+
+### Success Response (204 No Content)
+```
+(empty body)
+```
+
+### Error Response (404 Not Found)
+```json
+{
+  "statusCode": 404,
+  "title": "Resource not found",
+  "detail": "Enrollment with ID 9a8b7c6d-5e4f-3a2b-1c0d-fedcba098765 not found",
+  "traceId": "00-1234567890abcdef-1234567890abcdef-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
 }
 ```
 
@@ -223,14 +339,43 @@ Invoke-RestMethod -Uri "http://localhost:5263/api/students/$studentId" -Method G
 3 = Administrator
 ```
 
-## Common Error Codes
+## Standardized Error Response Format
 
-| Code | Description |
-|------|-------------|
-| 400  | Bad Request - Validation failed or invalid data |
-| 404  | Not Found - Resource doesn't exist |
-| 401  | Unauthorized - Not authenticated |
-| 500  | Internal Server Error - Something went wrong |
+All error responses follow the `ErrorResponse` model defined in `UMS.api/Models/ErrorResponse.cs`:
+
+```json
+{
+  "statusCode": 400,
+  "title": "Error title",
+  "detail": "Detailed error message",
+  "traceId": "00-trace-id-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": {
+    "PropertyName": ["Error message 1", "Error message 2"]
+  }
+}
+```
+
+### Error Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `statusCode` | integer | HTTP status code (400, 401, 404, 500, etc.) |
+| `title` | string | Brief error summary |
+| `detail` | string | Detailed error description |
+| `traceId` | string | Request trace identifier for debugging |
+| `timestampUtc` | datetime | When the error occurred (UTC) |
+| `errors` | object | Validation errors grouped by property name (null for non-validation errors) |
+
+## Common HTTP Status Codes
+
+| Code | Title | When Used |
+|------|-------|-----------|
+| 400  | Bad Request / Validation failed | Invalid input, validation errors, business rule violations |
+| 401  | Unauthorized | Missing or invalid authentication token |
+| 403  | Forbidden | User lacks required permissions/role |
+| 404  | Resource not found | Requested entity does not exist |
+| 500  | Internal server error | Unexpected server-side error |
 
 ## Notes
 

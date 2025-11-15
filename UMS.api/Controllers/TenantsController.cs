@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using UMS.Application.DTOs.Tenants;
 using UMS.Application.Features.Tenants.Commands.CreateTenant;
 using UMS.Application.Features.Tenants.Queries.GetAllTenants;
+using UMS.Core.Exceptions;
 using UMS.Core.Interfaces;
 
 namespace UMS.API.Controllers
@@ -34,7 +35,7 @@ namespace UMS.API.Controllers
         {
             if (!_tenantService.IsSuperAdmin())
             {
-                return Forbid("Super admin access required.");
+                throw new UnauthorizedException("Super admin access required.");
             }
 
             var tenants = await _mediator.Send(new GetAllTenantsQuery());
@@ -54,18 +55,12 @@ namespace UMS.API.Controllers
         {
             if (!_tenantService.IsSuperAdmin())
             {
-                return Forbid("Super admin access required.");
+                throw new UnauthorizedException("Super admin access required.");
             }
 
-            try
-            {
-                var tenantId = await _mediator.Send(command);
-                return CreatedAtAction(nameof(GetAll), new { id = tenantId }, new { id = tenantId, subdomain = command.Subdomain });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            // InvalidOperationException thrown by handler is automatically caught by ExceptionHandlingMiddleware
+            var tenantId = await _mediator.Send(command);
+            return CreatedAtAction(nameof(GetAll), new { id = tenantId }, new { id = tenantId, subdomain = command.Subdomain });
         }
     }
 }

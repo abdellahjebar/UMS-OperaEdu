@@ -20,7 +20,7 @@ namespace UMS.Application.Features.Enrollments.Commands.UpdateEnrollment
             
             if (enrollment == null)
             {
-                throw new BadRequestException($"Enrollment with ID {request.Id} not found");
+                throw new NotFoundException($"Enrollment with ID {request.Id} not found");
             }
 
             enrollment.NumericGrade = request.NumericGrade;

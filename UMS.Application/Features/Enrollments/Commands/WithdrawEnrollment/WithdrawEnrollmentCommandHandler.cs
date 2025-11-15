@@ -21,7 +21,7 @@ namespace UMS.Application.Features.Enrollments.Commands.WithdrawEnrollment
             
             if (enrollment == null)
             {
-                throw new BadRequestException($"Enrollment with ID {request.Id} not found");
+                throw new NotFoundException($"Enrollment with ID {request.Id} not found");
             }
 
             enrollment.Status = EnrollmentStatus.Withdrawn;

@@ -568,19 +568,103 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ### Error Handling
 
+#### Standardized Error Response Model
+
+All exceptions are caught by `ExceptionHandlingMiddleware` and transformed into a standardized `ErrorResponse` object defined in `UMS.api/Models/ErrorResponse.cs`:
+
 ```csharp
-// Custom Domain Exceptions
-throw new NotFoundException("Student not found");
+public class ErrorResponse
+{
+    public int StatusCode { get; init; }
+    public string Title { get; init; } = string.Empty;
+    public string Detail { get; init; } = string.Empty;
+    public string TraceId { get; init; } = string.Empty;
+    public DateTime TimestampUtc { get; init; } = DateTime.UtcNow;
+    public IDictionary<string, string[]>? Errors { get; init; }
+}
+```
+
+#### Exception Mapping
+
+| Exception Type | HTTP Status | Title | Use Case |
+|----------------|-------------|-------|----------|
+| `ValidationException` | 400 | "Validation failed" | FluentValidation errors |
+| `BadRequestException` | 400 | "Bad request" | Invalid input or business rule violation |
+| `InvalidOperationException` | 400 | "Bad request" | Invalid state or operation |
+| `UnauthorizedException` | 401 | "Unauthorized" | Authentication failure |
+| `UnauthorizedAccessException` | 401 | "Unauthorized" | Missing credentials |
+| `NotFoundException` | 404 | "Resource not found" | Entity does not exist |
+| `KeyNotFoundException` | 404 | "Resource not found" | Dictionary key missing |
+| *All others* | 500 | "Internal server error" | Unexpected errors |
+
+#### Custom Domain Exceptions
+
+```csharp
+// Defined in UMS.Core/Exceptions/
+throw new NotFoundException($"Student with ID {id} not found");
 throw new UnauthorizedException("Invalid credentials");
 throw new BadRequestException("Email already exists");
+```
 
-// Caught by ExceptionHandlingMiddleware
-// Returned as:
+#### Example Error Responses
+
+**404 Not Found:**
+```json
 {
   "statusCode": 404,
-  "message": "Student not found",
-  "timestamp": "2024-01-15T10:30:00Z"
+  "title": "Resource not found",
+  "detail": "Course with ID 3fa85f64-5717-4562-b3fc-2c963f66afa6 not found",
+  "traceId": "00-abc123-def456-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
 }
+```
+
+**400 Validation Error:**
+```json
+{
+  "statusCode": 400,
+  "title": "Validation failed",
+  "detail": "One or more validation errors occurred.",
+  "traceId": "00-abc123-def456-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": {
+    "Email": ["Email is required."],
+    "Password": ["Password must be at least 8 characters."]
+  }
+}
+```
+
+**401 Unauthorized:**
+```json
+{
+  "statusCode": 401,
+  "title": "Unauthorized",
+  "detail": "Invalid credentials",
+  "traceId": "00-abc123-def456-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
+}
+```
+
+**500 Internal Server Error:**
+```json
+{
+  "statusCode": 500,
+  "title": "Internal server error",
+  "detail": "An unexpected error occurred while processing your request.",
+  "traceId": "00-abc123-def456-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
+}
+```
+
+#### Error Logging
+
+All exceptions are logged by `ExceptionHandlingMiddleware` using the injected `ILogger<ExceptionHandlingMiddleware>` before the response is returned to the client:
+
+```csharp
+_logger.LogError(ex, "Unhandled exception");
 ```
 
 ---

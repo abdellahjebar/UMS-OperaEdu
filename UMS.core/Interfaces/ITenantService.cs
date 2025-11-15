@@ -8,5 +8,7 @@ namespace UMS.Core.Interfaces
         string? GetCurrentTenantId();
         string? GetTenantConnectionString();
         bool IsSuperAdmin();
+        void SetTenantContext(string tenantId, string connectionString);
+        void SetSuperAdminContext();
     }
 }

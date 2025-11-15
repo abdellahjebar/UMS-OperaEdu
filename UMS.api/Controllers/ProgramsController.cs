@@ -36,6 +36,7 @@ namespace UMS.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Create([FromBody] CreateProgramCommand command)
         {
             var id = await _mediator.Send(command);
@@ -43,6 +44,7 @@ namespace UMS.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProgramCommand command)
         {
             command.Id = id;
@@ -51,6 +53,7 @@ namespace UMS.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
             await _mediator.Send(new DeleteProgramCommand { Id = id });

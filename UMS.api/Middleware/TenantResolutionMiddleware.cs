@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using UMS.API.Models;
+using UMS.Core.Interfaces;
 using UMS.Core.Interfaces.IRepositories;
 using UMS.Infrastructure.Services;
 
@@ -14,32 +17,33 @@ namespace UMS.API.Middleware
     public class TenantResolutionMiddleware
     {
         private readonly RequestDelegate _next;
+        private readonly ILogger<TenantResolutionMiddleware> _logger;
         private const string SUPER_ADMIN_SUBDOMAIN = "admin"; // admin.yourdomain.com
 
-        public TenantResolutionMiddleware(RequestDelegate next)
+        public TenantResolutionMiddleware(RequestDelegate next, ILogger<TenantResolutionMiddleware> logger)
         {
             _next = next;
+            _logger = logger;
         }
 
-        public async Task InvokeAsync(HttpContext context, ITenantRepository tenantRepository, TenantService tenantService, UMS.Core.Interfaces.IDatabaseInitializationService databaseInitService)
+        public async Task InvokeAsync(HttpContext context, ITenantRepository tenantRepository, ITenantService tenantService, UMS.Core.Interfaces.IDatabaseInitializationService databaseInitService)
         {
             var host = context.Request.Host.Host;
             var subdomain = ExtractSubdomain(host);
 
             if (string.IsNullOrEmpty(subdomain))
             {
-                context.Response.StatusCode = 400;
-                await context.Response.WriteAsJsonAsync(new
-                {
-                    StatusCode = 400,
-                    Message = "Invalid request. No subdomain found. Please access via subdomain (e.g., schoolname.domain.com)"
-                });
+                _logger.LogWarning("Tenant resolution failed: No subdomain found in host {Host}", host);
+                await WriteErrorResponse(context, StatusCodes.Status400BadRequest, 
+                    "Invalid request", 
+                    "No subdomain found. Please access via subdomain (e.g., schoolname.domain.com)");
                 return;
             }
 
             // Check if super admin
             if (subdomain.Equals(SUPER_ADMIN_SUBDOMAIN, StringComparison.OrdinalIgnoreCase))
             {
+                _logger.LogInformation("Super admin context activated for host {Host}", host);
                 tenantService.SetSuperAdminContext();
                 await _next(context);
                 return;
@@ -50,25 +54,25 @@ namespace UMS.API.Middleware
 
             if (tenant == null)
             {
-                context.Response.StatusCode = 404;
-                await context.Response.WriteAsJsonAsync(new
-                {
-                    StatusCode = 404,
-                    Message = $"School '{subdomain}' not found. Please contact administrator."
-                });
+                _logger.LogWarning("Tenant resolution failed: Subdomain {Subdomain} not found", subdomain);
+                await WriteErrorResponse(context, StatusCodes.Status404NotFound, 
+                    "Tenant not found", 
+                    $"School '{subdomain}' not found. Please contact administrator.");
                 return;
             }
 
             if (!tenant.IsSubscriptionActive())
             {
-                context.Response.StatusCode = 403;
-                await context.Response.WriteAsJsonAsync(new
-                {
-                    StatusCode = 403,
-                    Message = "School subscription is not active. Please contact administrator."
-                });
+                _logger.LogWarning("Tenant access denied: Subscription inactive for tenant {TenantId} (subdomain: {Subdomain})", 
+                    tenant.Id, subdomain);
+                await WriteErrorResponse(context, StatusCodes.Status403Forbidden, 
+                    "Subscription inactive", 
+                    "School subscription is not active. Please contact administrator.");
                 return;
             }
+
+            _logger.LogDebug("Tenant resolved: TenantId={TenantId}, Subdomain={Subdomain}, Name={TenantName}", 
+                tenant.Id, subdomain, tenant.Name);
 
             // Ensure database exists and is up to date
             await databaseInitService.EnsureDatabaseCreatedAsync(tenant);
@@ -77,6 +81,22 @@ namespace UMS.API.Middleware
             tenantService.SetTenantContext(tenant.Id.ToString(), tenant.ConnectionString);
 
             await _next(context);
+        }
+
+        private static async Task WriteErrorResponse(HttpContext context, int statusCode, string title, string detail)
+        {
+            context.Response.StatusCode = statusCode;
+            context.Response.ContentType = "application/json";
+
+            var errorResponse = new ErrorResponse
+            {
+                StatusCode = statusCode,
+                Title = title,
+                Detail = detail,
+                TraceId = context.TraceIdentifier
+            };
+
+            await context.Response.WriteAsJsonAsync(errorResponse);
         }
 
         private string? ExtractSubdomain(string host)

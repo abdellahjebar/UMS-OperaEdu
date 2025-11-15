@@ -20,7 +20,7 @@ namespace UMS.Application.Features.Programs.Commands.DeleteProgram
             
             if (program == null)
             {
-                throw new BadRequestException($"Program with ID {request.Id} not found");
+                throw new NotFoundException($"Program with ID {request.Id} not found");
             }
 
             await _unitOfWork.Programs.DeleteAsync(program.Id);

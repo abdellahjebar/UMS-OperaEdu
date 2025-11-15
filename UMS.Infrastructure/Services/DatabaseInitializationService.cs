@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using UMS.Core.Entities.Tenants;
 using UMS.Core.Interfaces;
+using UMS.Infrastructure.Persistance.Seeders;
 using UMS.Infrastructure.Persistence;
 
 namespace UMS.Infrastructure.Services
@@ -44,6 +45,7 @@ namespace UMS.Infrastructure.Services
 
                 // Check if database exists
                 var canConnect = await context.Database.CanConnectAsync();
+                bool isNewDatabase = false;
 
                 if (!canConnect)
                 {
@@ -51,6 +53,7 @@ namespace UMS.Infrastructure.Services
 
                     // Create database and apply all migrations
                     await context.Database.MigrateAsync();
+                    isNewDatabase = true;
 
                     _logger.LogInformation("Database created successfully for tenant: {TenantName}", tenant.Name);
                 }
@@ -74,6 +77,16 @@ namespace UMS.Infrastructure.Services
                     {
                         _logger.LogInformation("Database is up to date for tenant: {TenantName}", tenant.Name);
                     }
+                }
+
+                // Seed database if it's newly created or empty
+                if (isNewDatabase || !await context.Users.AnyAsync())
+                {
+                    _logger.LogInformation("Seeding database for tenant: {TenantName}", tenant.Name);
+                    var seederLogger = new LoggerFactory().CreateLogger<TenantDbSeeder>();
+                    var seeder = new TenantDbSeeder(context, seederLogger);
+                    await seeder.SeedAsync();
+                    _logger.LogInformation("Database seeded successfully for tenant: {TenantName}", tenant.Name);
                 }
             }
             catch (Exception ex)

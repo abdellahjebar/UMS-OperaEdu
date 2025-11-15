@@ -21,7 +21,7 @@ namespace UMS.Application.Features.Enrollments.Queries.GetEnrollmentById
 
             if (enrollment == null)
             {
-                throw new BadRequestException($"Enrollment with ID {request.Id} not found");
+                throw new NotFoundException($"Enrollment with ID {request.Id} not found");
             }
 
             return new EnrollmentDto

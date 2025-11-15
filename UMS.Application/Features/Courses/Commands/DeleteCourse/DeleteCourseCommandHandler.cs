@@ -20,7 +20,7 @@ namespace UMS.Application.Features.Courses.Commands.DeleteCourse
             
             if (course == null)
             {
-                throw new BadRequestException($"Course with ID {request.Id} not found");
+                throw new NotFoundException($"Course with ID {request.Id} not found");
             }
 
             await _unitOfWork.Courses.DeleteAsync(course.Id);

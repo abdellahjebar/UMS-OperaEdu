@@ -27,25 +27,33 @@ UMS.API           - REST API endpoints, middleware
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=UniversityDB;Trusted_Connection=True;TrustServerCertificate=True;"
-  }
+    "MasterConnection": "Server=(localdb)\\mssqllocaldb;Database=UMS_Master;Trusted_Connection=True;TrustServerCertificate=True;",
+  },
+  "DatabaseProvider": "SqlServer"
 }
 ```
 
-2. **Run Database Migrations**:
-```bash
-cd "c:\perso\Projects\UniversityManagementSystem\UMS solution"
-dotnet ef database update --project UMS.Infrastructure --startup-project UMS.api
-```
-
-3. **Run the Application**:
+2. **Run the Application** (migrations and seeding run automatically):
 ```bash
 cd UMS.api
 dotnet run
 ```
 
-4. **Access Swagger UI**:
-   - Open browser to: `http://localhost:5263/swagger`
+The application will:
+- Apply database migrations automatically
+- Seed the master database with a demo tenant
+- Seed tenant databases on first access
+
+> See [DATABASE_SEEDING.md](DATABASE_SEEDING.md) for detailed seeding documentation
+
+3. **Access the API**:
+   - Swagger UI: `http://localhost:5263/swagger`
+   - Demo tenant API: `http://demo.localhost:5263/api/...`
+
+4. **Default Credentials** (Development Only):
+   - Admin: `admin@demouniversity.edu` / `Admin@123`
+   - Faculty: `john.doe@demouniversity.edu` / `Faculty@123`
+   - Student: `alice.smith@demouniversity.edu` / `Student@123`
 
 ## 📦 Technologies Used
 
@@ -76,6 +84,45 @@ dotnet run
 - TPH (Table Per Hierarchy) inheritance for User types
 
 ## 📚 API Endpoints
+
+### Error Responses
+
+All API endpoints return standardized error responses following the `ErrorResponse` model:
+
+```json
+{
+  "statusCode": 404,
+  "title": "Resource not found",
+  "detail": "Student with ID 3fa85f64-5717-4562-b3fc-2c963f66afa6 not found",
+  "traceId": "00-1234567890abcdef-1234567890abcdef-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": null
+}
+```
+
+#### HTTP Status Codes
+- **400 Bad Request**: Invalid input or validation errors
+- **401 Unauthorized**: Missing or invalid authentication token
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Resource does not exist
+- **500 Internal Server Error**: Unexpected server error
+
+#### Validation Error Response
+```json
+{
+  "statusCode": 400,
+  "title": "Validation failed",
+  "detail": "One or more validation errors occurred.",
+  "traceId": "00-1234567890abcdef-1234567890abcdef-00",
+  "timestampUtc": "2025-11-14T10:30:00Z",
+  "errors": {
+    "Email": ["Email is required.", "Email must be a valid email address."],
+    "Password": ["Password must be at least 8 characters."]
+  }
+}
+```
+
+See `UMS.api/Models/ErrorResponse.cs` for the complete contract definition.
 
 ### Students
 
@@ -251,6 +298,14 @@ dotnet ef database update --project UMS.Infrastructure --startup-project UMS.api
 3. Create Handler for the Command/Query
 4. Add Validator (if Command)
 5. Create Controller endpoint in `UMS.API`
+
+## 📖 Documentation
+
+- **[DATABASE_SEEDING.md](DATABASE_SEEDING.md)** - Database initialization and seeding guide
+- **[WORKFLOW_DOCUMENTATION.md](WORKFLOW_DOCUMENTATION.md)** - Error handling and middleware documentation
+- **[API_EXAMPLES.md](API_EXAMPLES.md)** - API request/response examples
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development guidelines and best practices
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment instructions
 
 ## 🤝 Contributing
 

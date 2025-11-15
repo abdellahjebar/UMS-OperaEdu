@@ -5,6 +5,7 @@ using UMS.API.Middleware;
 using UMS.Application;
 using UMS.Core.Settings;
 using UMS.Infrastructure;
+using UMS.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,17 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
+});
+
+// Authorization policies (role-based)
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("FacultyOrAdmin", policy => policy.RequireRole("Faculty", "Admin"));
+    options.AddPolicy("StudentOnly", policy => policy.RequireRole("Student"));
+    options.AddPolicy("StudentOrFacultyOrAdmin", policy => policy.RequireRole("Student", "Faculty", "Admin"));
+    // Optionally require a TenantId claim for tenant-scoped policies
+    options.AddPolicy("TenantScoped", policy => policy.RequireClaim("TenantId"));
 });
 
 builder.Services.AddControllers();
@@ -62,5 +74,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Initialize and seed databases
+await app.InitializeDatabasesAsync();
 
 app.Run();

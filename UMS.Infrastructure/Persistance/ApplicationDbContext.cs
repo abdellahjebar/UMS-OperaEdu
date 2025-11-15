@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
@@ -37,8 +38,13 @@ namespace UMS.Infrastructure.Persistence
 
             foreach (var configType in configTypes)
             {
-                dynamic config = Activator.CreateInstance(configType);
-                modelBuilder.ApplyConfiguration(config);
+                var configurationInstance = Activator.CreateInstance(configType);
+                if (configurationInstance is null)
+                {
+                    continue;
+                }
+
+                modelBuilder.ApplyConfiguration((dynamic)configurationInstance);
             }
         }
     }
