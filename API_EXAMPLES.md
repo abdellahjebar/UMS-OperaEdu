@@ -116,7 +116,58 @@ GET /api/students/550e8400-e29b-41d4-a716-446655440000
 }
 ```
 
-## 4. Create a Course
+## 4. Create a Department
+
+### Request
+```http
+POST /api/departments
+Authorization: Bearer <jwt-token> (Admin role required)
+Content-Type: application/json
+
+{
+  "name": "Computer Science",
+  "code": "CS",
+  "description": "Department of Computer Science and Engineering",
+  "headOfDepartmentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "building": "Science Building A",
+  "phone": "+1234567890",
+  "email": "cs.dept@university.edu"
+}
+```
+
+### Success Response (201 Created)
+```json
+{
+  "id": "8b9c0d1e-2f3a-4b5c-6d7e-8f9a0b1c2d3e"
+}
+```
+
+## 5. Get All Departments
+
+### Request
+```http
+GET /api/departments
+```
+
+### Success Response (200 OK)
+```json
+[
+  {
+    "id": "8b9c0d1e-2f3a-4b5c-6d7e-8f9a0b1c2d3e",
+    "name": "Computer Science",
+    "code": "CS",
+    "description": "Department of Computer Science and Engineering",
+    "headOfDepartmentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "building": "Science Building A",
+    "phone": "+1234567890",
+    "email": "cs.dept@university.edu",
+    "createdAt": "2025-11-15T10:00:00Z",
+    "updatedAt": null
+  }
+]
+```
+
+## 6. Create a Course
 
 ### Request
 ```http
@@ -129,7 +180,7 @@ Content-Type: application/json
   "name": "Introduction to Computer Science",
   "description": "Fundamental concepts of computer science",
   "credits": 3,
-  "departmentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+  "departmentId": "8b9c0d1e-2f3a-4b5c-6d7e-8f9a0b1c2d3e"
 }
 ```
 
@@ -164,7 +215,69 @@ Content-Type: application/json
 }
 ```
 
-## 5. Create Enrollment
+## 7. Create a Section
+
+### Request
+```http
+POST /api/sections
+Authorization: Bearer <jwt-token> (Admin role required)
+Content-Type: application/json
+
+{
+  "courseId": "7d8e9f00-1234-5678-9abc-def012345678",
+  "sectionNumber": "001",
+  "term": 0,
+  "year": 2025,
+  "instructorId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "maxCapacity": 30,
+  "startDate": "2025-01-15",
+  "endDate": "2025-05-15"
+}
+```
+
+### Success Response (201 Created)
+```json
+{
+  "id": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+}
+```
+
+### Term Enum Values
+```
+0 = Fall
+1 = Spring
+2 = Summer
+```
+
+## 8. Get All Sections
+
+### Request
+```http
+GET /api/sections
+Authorization: Bearer <jwt-token> (Faculty or Admin role required)
+```
+
+### Success Response (200 OK)
+```json
+[
+  {
+    "id": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+    "courseId": "7d8e9f00-1234-5678-9abc-def012345678",
+    "sectionNumber": "001",
+    "term": 0,
+    "year": 2025,
+    "instructorId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "maxCapacity": 30,
+    "currentEnrollment": 0,
+    "startDate": "2025-01-15",
+    "endDate": "2025-05-15",
+    "createdAt": "2025-11-15T10:00:00Z",
+    "updatedAt": null
+  }
+]
+```
+
+## 9. Create Enrollment
 
 ### Request
 ```http
@@ -174,7 +287,7 @@ Content-Type: application/json
 
 {
   "studentId": "550e8400-e29b-41d4-a716-446655440000",
-  "sectionId": "7d8e9f00-1234-5678-9abc-def012345678",
+  "sectionId": "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
   "enrollmentDate": "2025-01-15"
 }
 ```
@@ -198,7 +311,7 @@ Content-Type: application/json
 }
 ```
 
-## 6. Update Enrollment Grade
+## 10. Update Enrollment Grade
 
 ### Request
 ```http
