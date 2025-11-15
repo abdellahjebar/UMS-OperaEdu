@@ -67,7 +67,15 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "UMS API v1");
+        options.DocumentTitle = "UMS API Documentation";
+        options.DefaultModelsExpandDepth(-1); // Hide schemas section by default
+        options.DisplayRequestDuration(); // Show request duration
+        options.EnableDeepLinking(); // Enable deep linking for tags and operations
+        options.EnableFilter(); // Enable API filter box
+    });
 }
 
 app.UseHttpsRedirection();

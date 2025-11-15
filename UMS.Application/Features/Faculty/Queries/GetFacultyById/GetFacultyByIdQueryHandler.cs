@@ -25,10 +25,10 @@ namespace UMS.Application.Features.Faculty.Queries.GetFacultyById
             return new FacultyDto
             {
                 Id = faculty.Id,
-                Email = faculty.Email,
-                FirstName = faculty.FirstName,
-                LastName = faculty.LastName,
-                PhoneNumber = faculty.PhoneNumber,
+                Email = faculty.Email ?? string.Empty,
+                FirstName = faculty.FirstName ?? string.Empty,
+                LastName = faculty.LastName ?? string.Empty,
+                PhoneNumber = faculty.PhoneNumber ?? string.Empty,
                 EmployeeNumber = faculty.EmployeeNumber,
                 DepartmentId = faculty.DepartmentId,
                 Title = faculty.Title,
