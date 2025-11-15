@@ -12,6 +12,7 @@ namespace UMS.Infrastructure.Persistence.Repositories
         private IDbContextTransaction? _transaction;
 
         public IStudentRepository Students { get; }
+        public IFacultyRepository Faculty { get; }
         public IDepartmentRepository Departments { get; }
         public ISectionRepository Sections { get; }
         public ICourseRepository Courses { get; }
@@ -21,6 +22,7 @@ namespace UMS.Infrastructure.Persistence.Repositories
         public UnitOfWork(
             ApplicationDbContext context,
             IStudentRepository studentRepository,
+            IFacultyRepository facultyRepository,
             IDepartmentRepository departmentRepository,
             ISectionRepository sectionRepository,
             ICourseRepository courseRepository,
@@ -29,6 +31,7 @@ namespace UMS.Infrastructure.Persistence.Repositories
         {
             _context = context;
             Students = studentRepository;
+            Faculty = facultyRepository;
             Departments = departmentRepository;
             Sections = sectionRepository;
             Courses = courseRepository;

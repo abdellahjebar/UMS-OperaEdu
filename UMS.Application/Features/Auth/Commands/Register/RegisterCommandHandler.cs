@@ -65,7 +65,7 @@ namespace UMS.Application.Features.Auth.Commands.Register
                     GPA = 0.0m,
                     TotalCredits = 0
                 },
-                UserType.Faculty => new Faculty
+                UserType.Faculty => new Core.Entities.Identity.Faculty
                 {
                     Email = request.Email,
                     PasswordHash = passwordHash,

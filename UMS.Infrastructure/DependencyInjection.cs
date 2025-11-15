@@ -69,6 +69,7 @@ namespace UMS.Infrastructure
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IStudentRepository, StudentRepository>();
+            services.AddScoped<IFacultyRepository, FacultyRepository>();
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
             services.AddScoped<ISectionRepository, SectionRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
