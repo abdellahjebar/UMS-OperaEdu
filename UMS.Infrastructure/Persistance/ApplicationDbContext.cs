@@ -19,6 +19,7 @@ namespace UMS.Infrastructure.Persistence
         public DbSet<Student> Students { get; set; }
         public DbSet<Faculty> Faculties { get; set; }
         public DbSet<Staff> Staff { get; set; }
+        public DbSet<Department> Departments { get; set; }
         public DbSet<Program> Programs { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<Section> Sections { get; set; }

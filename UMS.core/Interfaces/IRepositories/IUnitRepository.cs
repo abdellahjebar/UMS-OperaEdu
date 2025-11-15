@@ -6,6 +6,8 @@ namespace UMS.Core.Interfaces.Repositories
     public interface IUnitOfWork : IDisposable
     {
         IStudentRepository Students { get; }
+        IDepartmentRepository Departments { get; }
+        ISectionRepository Sections { get; }
         ICourseRepository Courses { get; }
         IEnrollmentRepository Enrollments { get; }
         IProgramRepository Programs { get; }
