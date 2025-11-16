@@ -6,6 +6,7 @@ using UMS.Application.Features.Enrollments.Commands.UpdateEnrollment;
 using UMS.Application.Features.Enrollments.Commands.WithdrawEnrollment;
 using UMS.Application.Features.Enrollments.Queries.GetEnrollmentById;
 using UMS.Application.Features.Enrollments.Queries.GetStudentEnrollments;
+using UMS.Core.Interfaces.Repositories;
 
 namespace UMS.API.Controllers
 {
@@ -15,10 +16,20 @@ namespace UMS.API.Controllers
     public class EnrollmentsController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public EnrollmentsController(IMediator mediator)
+        public EnrollmentsController(IMediator mediator, IUnitOfWork unitOfWork)
         {
             _mediator = mediator;
+            _unitOfWork = unitOfWork;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin,Faculty")]
+        public async Task<IActionResult> GetAll()
+        {
+            var enrollments = await _unitOfWork.Enrollments.GetAllAsync();
+            return Ok(enrollments);
         }
 
         [HttpGet("student/{studentId}")]

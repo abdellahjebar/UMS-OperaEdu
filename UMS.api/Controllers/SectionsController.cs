@@ -7,6 +7,7 @@ using UMS.Application.Features.Sections.Commands.DeleteSection;
 using UMS.Application.Features.Sections.Commands.UpdateSection;
 using UMS.Application.Features.Sections.Queries.GetAllSections;
 using UMS.Application.Features.Sections.Queries.GetSectionById;
+using UMS.Application.Features.Enrollments.Queries.GetSectionEnrollments;
 
 namespace UMS.API.Controllers
 {
@@ -65,6 +66,14 @@ namespace UMS.API.Controllers
         {
             await _mediator.Send(new DeleteSectionCommand { Id = id });
             return NoContent();
+        }
+
+        [HttpGet("{id}/enrollments")]
+        [Authorize(Policy = "FacultyOrAdmin")]
+        public async Task<ActionResult> GetEnrollments(Guid id)
+        {
+            var enrollments = await _mediator.Send(new GetSectionEnrollmentsQuery { SectionId = id });
+            return Ok(enrollments);
         }
     }
 }

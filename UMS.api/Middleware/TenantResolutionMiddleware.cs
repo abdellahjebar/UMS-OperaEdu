@@ -111,7 +111,8 @@ namespace UMS.API.Middleware
             if (host.Contains("localhost"))
             {
                 var parts = host.Split('.');
-                return parts.Length > 1 ? parts[0] : "admin"; // Default to admin for plain localhost
+                // For plain localhost, use "testuniversity" as default tenant for testing
+                return parts.Length > 1 ? parts[0] : "testuniversity";
             }
 
             // Production: extract subdomain from host

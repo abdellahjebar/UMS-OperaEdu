@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UMS.Application.DTOs.Students;
 using UMS.Application.Features.Students.Commands.CreateStudent;
+using UMS.Application.Features.Students.Commands.UpdateStudent;
+using UMS.Application.Features.Students.Commands.DeleteStudent;
 using UMS.Application.Features.Students.Queries.GetAllStudents;
 using UMS.Application.Features.Students.Queries.GetStudentById;
 
@@ -71,6 +73,48 @@ namespace UMS.API.Controllers
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Update a student (Admin only)
+        /// </summary>
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStudentCommand command)
+        {
+            try
+            {
+                command.Id = id;
+                await _mediator.Send(command);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete a student (Admin only)
+        /// </summary>
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                await _mediator.Send(new DeleteStudentCommand { Id = id });
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
         }
     }
