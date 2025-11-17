@@ -26,14 +26,30 @@ namespace UMS.API.Controllers
         }
 
         /// <summary>
-        /// Get all students (Admin/Faculty only)
+        /// Get all students with pagination, search, and sorting (Admin/Faculty only)
         /// </summary>
         [HttpGet]
         [Authorize(Roles = "Admin,Faculty")]
-        [ProducesResponseType(typeof(IEnumerable<StudentDto>), 200)]
-        public async Task<IActionResult> GetAll()
+        [ProducesResponseType(typeof(UMS.Application.DTOs.Common.PagedResult<StudentDto>), 200)]
+        public async Task<IActionResult> GetAll(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? searchTerm = null,
+            [FromQuery] string? sortBy = "LastName",
+            [FromQuery] bool sortDescending = false,
+            [FromQuery] Guid? programId = null)
         {
-            var students = await _mediator.Send(new GetAllStudentsQuery());
+            var query = new GetAllStudentsQuery
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                SearchTerm = searchTerm,
+                SortBy = sortBy,
+                SortDescending = sortDescending,
+                ProgramId = programId
+            };
+
+            var students = await _mediator.Send(query);
             return Ok(students);
         }
 

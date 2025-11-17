@@ -15,6 +15,7 @@ namespace UMS.Application.DTOs.Students
         public DateTime EnrollmentDate { get; set; }
         public DateTime? ExpectedGraduationDate { get; set; }
         public Guid ProgramId { get; set; }
+        public string? ProgramName { get; set; }  // Program name for display
         public AcademicStatus AcademicStatus { get; set; }
         public decimal GPA { get; set; }
         public int TotalCredits { get; set; }

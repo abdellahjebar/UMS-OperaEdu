@@ -17,7 +17,7 @@ namespace UMS.Application.Features.Students.Queries.GetStudentById
 
         public async Task<StudentDto> Handle(GetStudentByIdQuery request, CancellationToken cancellationToken)
         {
-            var student = await _unitOfWork.Students.GetByIdAsync(request.Id);
+            var student = await _unitOfWork.Students.GetByIdWithProgramAsync(request.Id);
 
             if (student == null)
             {
@@ -36,6 +36,7 @@ namespace UMS.Application.Features.Students.Queries.GetStudentById
                 EnrollmentDate = student.EnrollmentDate,
                 ExpectedGraduationDate = student.ExpectedGraduationDate,
                 ProgramId = student.ProgramId,
+                ProgramName = student.Program != null ? student.Program.Name : null,
                 AcademicStatus = student.AcademicStatus,
                 GPA = student.GPA,
                 TotalCredits = student.TotalCredits,

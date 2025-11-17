@@ -37,9 +37,10 @@ namespace UMS.Infrastructure.Persistance.Seeders
 
                 _logger.LogInformation("Seeding tenant database with initial data...");
 
-                // Seed data in order of dependencies
-                await SeedUsersAsync();
+                // Seed data in order of dependencies: Departments -> Programs -> Users -> Courses -> Sections -> Enrollments
+                await SeedDepartmentsAsync();
                 await SeedProgramsAsync();
+                await SeedUsersAsync();
                 await SeedCoursesAsync();
                 await SeedSectionsAsync();
                 await SeedEnrollmentsAsync();
@@ -60,10 +61,10 @@ namespace UMS.Infrastructure.Persistance.Seeders
             // Faculty user
             var faculty = new Faculty
             {
-                Email = "john.doe@demouniversity.edu",
+                Email = "john.doe@testuniversity.edu",
                 FirstName = "John",
                 LastName = "Doe",
-                PasswordHash = "$2a$11$V8K7K1YTbN5xJjGU6qKQHeZfj5Bz5q3r6Wz4X7L9C8H5J2N1M0Q8K", // "Faculty@123"
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Faculty@123"),
                 UserType = UserType.Faculty,
                 IsActive = true,
                 DateOfBirth = new DateTime(1985, 5, 15),
@@ -77,18 +78,22 @@ namespace UMS.Infrastructure.Persistance.Seeders
                 UpdatedAt = DateTime.UtcNow
             };
 
+            // Get the first program for students
+            var firstProgram = await _context.Programs.FirstOrDefaultAsync();
+            var programId = firstProgram?.Id ?? Guid.Empty;
+
             // Student users
             var student1 = new Student
             {
-                Email = "alice.smith@demouniversity.edu",
+                Email = "alice.smith@testuniversity.edu",
                 FirstName = "Alice",
                 LastName = "Smith",
-                PasswordHash = "$2a$11$V8K7K1YTbN5xJjGU6qKQHeZfj5Bz5q3r6Wz4X7L9C8H5J2N1M0Q8K", // "Student@123"
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student@123"),
                 UserType = UserType.Student,
                 IsActive = true,
                 DateOfBirth = new DateTime(2003, 3, 20),
                 StudentNumber = "S2024001",
-                ProgramId = Guid.Empty, // Will be set after programs are created
+                ProgramId = programId, // Use actual program ID
                 EnrollmentDate = new DateTime(2024, 9, 1),
                 ExpectedGraduationDate = new DateTime(2028, 6, 1),
                 AcademicStatus = AcademicStatus.Active,
@@ -100,15 +105,15 @@ namespace UMS.Infrastructure.Persistance.Seeders
 
             var student2 = new Student
             {
-                Email = "bob.jones@demouniversity.edu",
+                Email = "bob.jones@testuniversity.edu",
                 FirstName = "Bob",
                 LastName = "Jones",
-                PasswordHash = "$2a$11$V8K7K1YTbN5xJjGU6qKQHeZfj5Bz5q3r6Wz4X7L9C8H5J2N1M0Q8K", // "Student@123"
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Student@123"),
                 UserType = UserType.Student,
                 IsActive = true,
                 DateOfBirth = new DateTime(2002, 7, 10),
                 StudentNumber = "S2024002",
-                ProgramId = Guid.Empty, // Will be set after programs are created
+                ProgramId = programId, // Use actual program ID
                 EnrollmentDate = new DateTime(2024, 9, 1),
                 ExpectedGraduationDate = new DateTime(2028, 6, 1),
                 AcademicStatus = AcademicStatus.Active,
@@ -121,10 +126,10 @@ namespace UMS.Infrastructure.Persistance.Seeders
             // Admin user (Staff)
             var admin = new Staff
             {
-                Email = "admin@demouniversity.edu",
+                Email = "admin@testuniversity.edu",
                 FirstName = "System",
                 LastName = "Administrator",
-                PasswordHash = "$2a$11$V8K7K1YTbN5xJjGU6qKQHeZfj5Bz5q3r6Wz4X7L9C8H5J2N1M0Q8K", // "Admin@123"
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
                 UserType = UserType.Admin,
                 IsActive = true,
                 DateOfBirth = new DateTime(1980, 1, 1),
@@ -141,10 +146,6 @@ namespace UMS.Infrastructure.Persistance.Seeders
             _context.Staff.Add(admin);
 
             await _context.SaveChangesAsync();
-
-            // Store student references for later use
-            _context.Set<Student>().Local.Add(student1);
-            _context.Set<Student>().Local.Add(student2);
         }
 
         private async Task SeedProgramsAsync()
@@ -179,15 +180,6 @@ namespace UMS.Infrastructure.Persistance.Seeders
 
             _context.Programs.AddRange(programs);
             await _context.SaveChangesAsync();
-
-            // Update student programs
-            var students = await _context.Students.ToListAsync();
-            if (students.Count >= 2)
-            {
-                students[0].ProgramId = programs[0].Id;
-                students[1].ProgramId = programs[0].Id;
-                await _context.SaveChangesAsync();
-            }
         }
 
         private async Task SeedCoursesAsync()

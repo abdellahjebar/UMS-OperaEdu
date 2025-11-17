@@ -1,5 +1,6 @@
 using MediatR;
 using System;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using UMS.Core.Entities.Identity;
@@ -19,6 +20,13 @@ namespace UMS.Application.Features.Students.Commands.CreateStudent
 
         public async Task<Guid> Handle(CreateStudentCommand request, CancellationToken cancellationToken)
         {
+            // Validate that program exists
+            var program = await _unitOfWork.Programs.GetByIdAsync(request.ProgramId);
+            if (program == null)
+            {
+                throw new InvalidOperationException($"Program with ID '{request.ProgramId}' does not exist.");
+            }
+
             // Check if student number already exists
             if (!string.IsNullOrEmpty(request.StudentNumber))
             {
@@ -36,8 +44,12 @@ namespace UMS.Application.Features.Students.Commands.CreateStudent
                 throw new InvalidOperationException($"User with email '{request.Email}' already exists.");
             }
 
+            var passwordToHash = string.IsNullOrWhiteSpace(request.Password)
+                ? GenerateSecurePassword()
+                : request.Password!;
+
             // Hash password (in production, use proper password hashing like BCrypt)
-            var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(passwordToHash);
 
             var student = new Student
             {
@@ -54,15 +66,33 @@ namespace UMS.Application.Features.Students.Commands.CreateStudent
                 EnrollmentDate = request.EnrollmentDate,
                 ExpectedGraduationDate = request.ExpectedGraduationDate,
                 ProgramId = request.ProgramId,
-                AcademicStatus = AcademicStatus.Active,
-                GPA = 0.0m,
-                TotalCredits = 0
+                AcademicStatus = request.AcademicStatus,
+                GPA = request.GPA,
+                TotalCredits = request.TotalCredits
             };
 
             await _unitOfWork.Students.AddAsync(student);
             await _unitOfWork.SaveChangesAsync();
 
             return student.Id;
+        }
+
+        private static string GenerateSecurePassword(int length = 12)
+        {
+            const string allowedChars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@$?";
+            var charArray = new char[length];
+            var randomBytes = new byte[length];
+
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+
+            for (var i = 0; i < length; i++)
+            {
+                var idx = randomBytes[i] % allowedChars.Length;
+                charArray[i] = allowedChars[idx];
+            }
+
+            return new string(charArray);
         }
     }
 }

@@ -11,8 +11,8 @@ namespace UMS.Application.Features.Students.Commands.CreateStudent
                 .EmailAddress().WithMessage("Invalid email format.");
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("Password is required.")
-                .MinimumLength(6).WithMessage("Password must be at least 6 characters.");
+                .MinimumLength(6).WithMessage("Password must be at least 6 characters.")
+                .When(x => !string.IsNullOrWhiteSpace(x.Password));
 
             RuleFor(x => x.FirstName)
                 .NotEmpty().WithMessage("First name is required.")
@@ -31,6 +31,15 @@ namespace UMS.Application.Features.Students.Commands.CreateStudent
 
             RuleFor(x => x.ProgramId)
                 .NotEmpty().WithMessage("Program ID is required.");
+
+            RuleFor(x => x.AcademicStatus)
+                .IsInEnum().WithMessage("Invalid academic status provided.");
+
+            RuleFor(x => x.GPA)
+                .InclusiveBetween(0m, 4m).WithMessage("GPA must be between 0.0 and 4.0.");
+
+            RuleFor(x => x.TotalCredits)
+                .GreaterThanOrEqualTo(0).WithMessage("Total credits cannot be negative.");
         }
     }
 }

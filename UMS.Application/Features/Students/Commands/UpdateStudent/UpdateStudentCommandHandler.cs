@@ -23,6 +23,16 @@ namespace UMS.Application.Features.Students.Commands.UpdateStudent
                 throw new InvalidOperationException($"Student with ID '{request.Id}' not found.");
             }
 
+            // Validate that program exists if being updated
+            if (request.ProgramId != student.ProgramId)
+            {
+                var program = await _unitOfWork.Programs.GetByIdAsync(request.ProgramId);
+                if (program == null)
+                {
+                    throw new InvalidOperationException($"Program with ID '{request.ProgramId}' does not exist.");
+                }
+            }
+
             // Update student properties
             student.FirstName = request.FirstName;
             student.LastName = request.LastName;

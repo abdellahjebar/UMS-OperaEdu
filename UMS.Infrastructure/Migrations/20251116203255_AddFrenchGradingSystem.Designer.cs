@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UMS.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using UMS.Infrastructure.Persistence;
 namespace UMS.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251116203255_AddFrenchGradingSystem")]
+    partial class AddFrenchGradingSystem
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -568,8 +571,6 @@ namespace UMS.Infrastructure.Migrations
                     b.Property<int>("TotalCredits")
                         .HasColumnType("int");
 
-                    b.HasIndex("ProgramId");
-
                     b.HasIndex("StudentNumber")
                         .IsUnique()
                         .HasFilter("[StudentNumber] IS NOT NULL");
@@ -629,17 +630,6 @@ namespace UMS.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
-                });
-
-            modelBuilder.Entity("UMS.Core.Entities.Identity.Student", b =>
-                {
-                    b.HasOne("UMS.Core.Entities.Academic.Program", "Program")
-                        .WithMany()
-                        .HasForeignKey("ProgramId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Program");
                 });
 
             modelBuilder.Entity("UMS.Core.Entities.Academic.Department", b =>

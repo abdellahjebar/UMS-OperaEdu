@@ -38,12 +38,31 @@ builder.Services.AddAuthentication(options =>
 // Authorization policies (role-based)
 builder.Services.AddAuthorization(options =>
 {
+    // SuperAdmin policy - requires SuperAdmin role and IsSuperAdmin claim
+    options.AddPolicy("SuperAdminOnly", policy => 
+        policy.RequireRole("SuperAdmin")
+              .RequireClaim("IsSuperAdmin", "true"));
+    
+    // Tenant user policies
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("FacultyOrAdmin", policy => policy.RequireRole("Faculty", "Admin"));
     options.AddPolicy("StudentOnly", policy => policy.RequireRole("Student"));
     options.AddPolicy("StudentOrFacultyOrAdmin", policy => policy.RequireRole("Student", "Faculty", "Admin"));
+    
     // Optionally require a TenantId claim for tenant-scoped policies
     options.AddPolicy("TenantScoped", policy => policy.RequireClaim("TenantId"));
+});
+
+// Add CORS for frontend
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
 });
 
 builder.Services.AddControllers();
@@ -57,6 +76,9 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
+
+// Enable CORS
+app.UseCors();
 
 // Tenant resolution (must be before exception handling)
 app.UseMiddleware<TenantResolutionMiddleware>();

@@ -29,13 +29,13 @@ namespace UMS.Infrastructure.Persistence
         {
             base.OnModelCreating(modelBuilder);
 
-            // Apply all configurations except TenantConfiguration (which belongs to MasterDbContext only)
+            // Apply all configurations except those that belong to MasterDbContext only
             var assembly = typeof(ApplicationDbContext).Assembly;
             var configTypes = assembly.GetTypes()
                 .Where(t => t.IsClass && !t.IsAbstract && !t.IsGenericType &&
                        t.GetInterfaces().Any(i => i.IsGenericType && 
                        i.GetGenericTypeDefinition() == typeof(Microsoft.EntityFrameworkCore.IEntityTypeConfiguration<>)))
-                .Where(t => t.Name != "TenantConfiguration"); // Exclude TenantConfiguration
+                .Where(t => t.Name != "TenantConfiguration" && t.Name != "SuperAdminConfiguration"); // Exclude Master DB configurations
 
             foreach (var configType in configTypes)
             {

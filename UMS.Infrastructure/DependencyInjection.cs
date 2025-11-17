@@ -82,6 +82,10 @@ namespace UMS.Infrastructure
 
             // JWT Service
             services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<ISuperAdminJwtService, SuperAdminJwtService>();
+
+            // SuperAdmin Repository
+            services.AddScoped<ISuperAdminRepository, Repositories.SuperAdminRepository>();
 
             // Database Initialization Service
             services.AddScoped<IDatabaseInitializationService, DatabaseInitializationService>();

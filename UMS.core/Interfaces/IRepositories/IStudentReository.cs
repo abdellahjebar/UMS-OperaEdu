@@ -11,5 +11,7 @@ namespace UMS.Core.Interfaces.Repositories
         Task<Student?> GetByEmailAsync(string email);
         Task<IEnumerable<Student>> GetByProgramAsync(Guid programId);
         Task<bool> ExistsAsync(string studentNumber);
+        Task<IEnumerable<Student>> GetAllWithProgramAsync();
+        Task<Student?> GetByIdWithProgramAsync(Guid id);
     }
 }

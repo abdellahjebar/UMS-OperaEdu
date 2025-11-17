@@ -25,6 +25,11 @@ namespace UMS.Core.Entities.Tenants
         public int MaxStudents { get; set; } = 10000;
         public int MaxFaculty { get; set; } = 500;
         public int MaxCourses { get; set; } = 1000;
+        
+        // Academic Configuration
+        public Enums.GradingSystem PreferredGradingSystem { get; set; } = Enums.GradingSystem.French; // Default to French 0-20 scale
+        public int CreditsPerYear { get; set; } = 60; // ECTS standard: 60 credits per academic year
+        public string? AcademicYearFormat { get; set; } = "S{0}"; // e.g., "S1", "S2" for French semesters
 
         public void Activate()
         {

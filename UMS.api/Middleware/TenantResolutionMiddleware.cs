@@ -40,10 +40,15 @@ namespace UMS.API.Middleware
                 return;
             }
 
-            // Check if super admin
+            // Check if super admin subdomain
+            // SuperAdmin requests must now include JWT token with SuperAdmin role
+            // The subdomain detection alone is not sufficient for security
             if (subdomain.Equals(SUPER_ADMIN_SUBDOMAIN, StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogInformation("Super admin context activated for host {Host}", host);
+                _logger.LogInformation("SuperAdmin subdomain detected for host {Host}. Authentication will be verified by JWT.", host);
+                
+                // Set SuperAdmin context flag, but actual authentication is done via JWT
+                // This allows the endpoint to be accessed, but authorization will require valid JWT token
                 tenantService.SetSuperAdminContext();
                 await _next(context);
                 return;

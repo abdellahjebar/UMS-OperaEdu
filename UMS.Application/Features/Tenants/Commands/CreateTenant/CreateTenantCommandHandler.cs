@@ -29,9 +29,9 @@ namespace UMS.Application.Features.Tenants.Commands.CreateTenant
                 throw new InvalidOperationException($"Subdomain '{request.Subdomain}' is already taken.");
             }
 
-            // Connection string will be generated in Infrastructure layer
-            // Format: Server=localhost;Database=UMS_Tenant_{subdomain};Trusted_Connection=True;TrustServerCertificate=True;
-            var connectionString = $"Server=localhost;Database=UMS_Tenant_{request.Subdomain};Trusted_Connection=True;TrustServerCertificate=True;";
+            // Connection string for LocalDB (development)
+            // Format: Server=(localdb)\mssqllocaldb;Database=UMS_Tenant_{subdomain};Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;
+            var connectionString = $"Server=(localdb)\\mssqllocaldb;Database=UMS_Tenant_{request.Subdomain};Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True;";
 
             // Create tenant entity
             var tenant = new Tenant

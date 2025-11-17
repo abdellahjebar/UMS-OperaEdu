@@ -20,37 +20,40 @@ namespace UMS.Infrastructure.Persistance.Seeders
         }
 
         /// <summary>
-        /// Seeds the master database with default tenants
+        /// Seeds the master database with default tenants and SuperAdmin
         /// </summary>
         public async Task SeedAsync()
         {
             try
             {
+                // Seed SuperAdmin first
+                await SeedSuperAdminAsync();
+
                 // Check if any tenants already exist
                 if (await _context.Tenants.AnyAsync())
                 {
-                    _logger.LogInformation("Master database already contains tenant data. Skipping seed.");
+                    _logger.LogInformation("Master database already contains tenant data. Skipping tenant seed.");
                     return;
                 }
 
                 _logger.LogInformation("Seeding master database with initial tenant data...");
 
-                // Create demo university tenant
-                var demoTenant = new Tenant
+                // Create test university tenant
+                var testTenant = new Tenant
                 {
-                    Name = "Demo University",
-                    Subdomain = "demo",
-                    ConnectionString = GetTenantConnectionString("demo"),
+                    Name = "Test University",
+                    Subdomain = "testuniversity",
+                    ConnectionString = GetTenantConnectionString("testuniversity"),
                     IsActive = true,
                     SubscriptionStartDate = DateTime.UtcNow,
                     SubscriptionEndDate = DateTime.UtcNow.AddYears(1),
                     AnnualFee = 10000m,
-                    AdminEmail = "admin@demouniversity.edu",
+                    AdminEmail = "admin@testuniversity.edu",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
 
-                _context.Tenants.Add(demoTenant);
+                _context.Tenants.Add(testTenant);
                 await _context.SaveChangesAsync();
 
                 _logger.LogInformation("Successfully seeded master database with {Count} tenant(s).", 1);
@@ -60,6 +63,43 @@ namespace UMS.Infrastructure.Persistance.Seeders
                 _logger.LogError(ex, "An error occurred while seeding the master database.");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Seeds the default SuperAdmin account
+        /// </summary>
+        private async Task SeedSuperAdminAsync()
+        {
+            const string defaultEmail = "superadmin@umsoperaedu.com";
+
+            // Check if SuperAdmin already exists
+            if (await _context.SuperAdmins.AnyAsync(sa => sa.Email == defaultEmail))
+            {
+                _logger.LogInformation("SuperAdmin account already exists. Skipping SuperAdmin seed.");
+                return;
+            }
+
+            _logger.LogInformation("Seeding default SuperAdmin account...");
+
+            // Create default SuperAdmin
+            // Default password: SuperAdmin@123 (should be changed after first login)
+            var superAdmin = new SuperAdmin
+            {
+                Email = defaultEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("SuperAdmin@123"),
+                FullName = "System Administrator",
+                PhoneNumber = "+1-555-0100",
+                IsActive = true,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Notes = "Default SuperAdmin account created during initial seeding. Please change password after first login."
+            };
+
+            _context.SuperAdmins.Add(superAdmin);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Successfully seeded default SuperAdmin account: {Email}", defaultEmail);
         }
 
         /// <summary>

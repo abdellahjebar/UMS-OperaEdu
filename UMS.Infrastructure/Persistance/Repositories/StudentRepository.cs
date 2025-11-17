@@ -42,5 +42,21 @@ namespace UMS.Infrastructure.Persistence.Repositories
                 .Where(s => !s.IsDeleted)
                 .AnyAsync(s => s.StudentNumber == studentNumber);
         }
+
+        public async Task<IEnumerable<Student>> GetAllWithProgramAsync()
+        {
+            return await _dbSet
+                .Where(s => !s.IsDeleted)
+                .Include(s => s.Program)
+                .ToListAsync();
+        }
+
+        public async Task<Student?> GetByIdWithProgramAsync(Guid id)
+        {
+            return await _dbSet
+                .Where(s => !s.IsDeleted)
+                .Include(s => s.Program)
+                .FirstOrDefaultAsync(s => s.Id == id);
+        }
     }
 }

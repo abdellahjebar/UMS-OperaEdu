@@ -16,12 +16,14 @@ namespace UMS.Infrastructure.Persistence
         }
 
         public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<SuperAdmin> SuperAdmins { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfiguration(new Configurations.TenantConfiguration());
+            modelBuilder.ApplyConfiguration(new Configurations.SuperAdminConfiguration());
         }
     }
 }

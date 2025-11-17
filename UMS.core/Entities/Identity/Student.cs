@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UMS.Core.Entities.Academic;
 using UMS.Core.Enums;
 
 namespace UMS.Core.Entities.Identity
@@ -13,5 +14,8 @@ namespace UMS.Core.Entities.Identity
         public AcademicStatus AcademicStatus { get; set; }
         public decimal GPA { get; set; }
         public int TotalCredits { get; set; }
+
+        // Navigation property
+        public virtual Program? Program { get; set; }
     }
 }
